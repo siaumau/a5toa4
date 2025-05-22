@@ -5,38 +5,249 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A5 PDF 轉 A4橫式 (2合1)</title>
     <style>
-        body { font-family: sans-serif; margin: 20px; }
-        #status { margin-top: 15px; font-style: italic; color: #333; }
-        .controls { margin-bottom: 20px; }
-        #tempCanvasContainer {
-            border: 1px dashed #ccc;
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f9f9f9;
+        :root {
+            --primary-color: #4a6da7;
+            --secondary-color: #f8f9fa;
+            --accent-color: #5d87d1;
+            --text-color: #333;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        #tempCanvasContainer p { margin: 0 0 5px 0; font-weight: bold; }
+        
+        body {
+            font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            color: #666;
+            margin-bottom: 25px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        @media (min-width: 768px) {
+            .controls {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
+        
+        .file-input-container {
+            position: relative;
+            flex: 1;
+        }
+        
+        .custom-file-input {
+            background-color: var(--secondary-color);
+            border: 2px dashed #ccc;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .custom-file-input:hover {
+            border-color: var(--primary-color);
+            background-color: #eef2f7;
+        }
+        
+        .custom-file-input p {
+            margin: 0;
+            color: #666;
+        }
+        
+        .custom-file-input strong {
+            color: var(--primary-color);
+        }
+        
+        #pdfFilesInput {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        #processButton {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            min-width: 120px;
+        }
+        
+        #processButton:hover {
+            background-color: var(--accent-color);
+        }
+        
+        #processButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        #status {
+            background-color: var(--secondary-color);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            font-size: 15px;
+        }
+        
+        .status-processing {
+            color: #0056b3;
+        }
+        
+        .status-success {
+            color: #28a745;
+        }
+        
+        .status-error {
+            color: #dc3545;
+        }
+        
+        #tempCanvasContainer {
+            border: 1px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            margin-top: 25px;
+            padding: 15px;
+            background-color: white;
+        }
+        
+        #tempCanvasContainer p {
+            margin: 0 0 10px 0;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
         #tempCanvas {
-            border: 1px solid #aaa;
-            max-width: 100%; /* Responsive canvas for viewing */
+            border: 1px solid #ddd;
+            max-width: 100%;
             height: auto;
+            border-radius: 4px;
+        }
+        
+        .file-list {
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .file-list-item {
+            background-color: #f1f5f9;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .progress-container {
+            height: 5px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #666;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <h1>A5 PDF 轉 A4橫式 (每頁A4拼貼兩個相同A5頁面)</h1>
-    <p>選擇一個或多個A5 PDF檔案。系統會將每個A5頁面複製兩份，並排放置到新的A4橫式頁面上。</p>
-    
-    <div class="controls">
-        <input type="file" id="pdfFilesInput" multiple accept=".pdf">
-        <button id="processButton">開始處理</button>
-    </div>
-    
-    <div id="status">正在等待操作...</div>
-    
-    <!-- Canvas用於臨時渲染PDF頁面，方便調試 -->
-    <div id="tempCanvasContainer">
-        <p>臨時渲染區 (用於調試，檢查文字是否正確渲染到Canvas):</p>
-        <canvas id="tempCanvas"></canvas>
+    <div class="container">
+        <header>
+            <h1>A5 PDF 轉 A4橫式 (2合1)</h1>
+            <p class="description">將A5 PDF檔案轉換為A4橫式，每頁A4拼貼兩個相同的A5頁面，方便雙面列印後裁切。</p>
+        </header>
+        
+        <div class="card">
+            <div class="controls">
+                <div class="file-input-container">
+                    <div class="custom-file-input">
+                        <p>拖放檔案到此處或 <strong>點擊選擇檔案</strong></p>
+                    </div>
+                    <input type="file" id="pdfFilesInput" multiple accept=".pdf">
+                </div>
+                <button id="processButton">開始處理</button>
+            </div>
+            
+            <div class="file-list" id="fileList"></div>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div id="status">正在等待選擇檔案...</div>
+        </div>
+        
+        <!-- Canvas用於臨時渲染PDF頁面 -->
+        <div id="tempCanvasContainer">
+            <p>預覽區 (檢查文字渲染效果):</p>
+            <canvas id="tempCanvas"></canvas>
+        </div>
+        
+        <footer>
+            <p>© 2023 A5轉A4工具 | 使用 PDF.js 與 jsPDF 開發</p>
+        </footer>
     </div>
 
     <!-- 引入函式庫 -->
@@ -53,22 +264,97 @@
         const tempCanvas = document.getElementById('tempCanvas');
         const tempCtx = tempCanvas.getContext('2d');
         const tempCanvasContainer = document.getElementById('tempCanvasContainer');
+        const fileListDiv = document.getElementById('fileList');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
 
         // PDF.js CMap 和 Standard Font Data URL (確保版本與 pdf.js 庫一致)
         const PDFJS_VERSION = pdfjsLib.version; // "3.11.174"
         const CMAP_URL = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/cmaps/`;
         const STANDARD_FONT_DATA_URL = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/standard_fonts/`;
 
+        // 檔案拖放功能
+        const fileInputContainer = document.querySelector('.custom-file-input');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileInputContainer.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileInputContainer.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileInputContainer.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            fileInputContainer.style.borderColor = 'var(--primary-color)';
+            fileInputContainer.style.backgroundColor = '#eef2f7';
+        }
+        
+        function unhighlight() {
+            fileInputContainer.style.borderColor = '#ccc';
+            fileInputContainer.style.backgroundColor = 'var(--secondary-color)';
+        }
+        
+        fileInputContainer.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            pdfFilesInput.files = files;
+            updateFileList();
+        }
+        
+        // 更新檔案列表顯示
+        pdfFilesInput.addEventListener('change', updateFileList);
+        
+        function updateFileList() {
+            const files = pdfFilesInput.files;
+            if (files.length > 0) {
+                fileListDiv.innerHTML = '';
+                fileListDiv.style.display = 'block';
+                
+                for (let i = 0; i < files.length; i++) {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-list-item';
+                    fileItem.innerHTML = `
+                        <span class="file-name">${files[i].name}</span>
+                        <span class="file-size">${formatFileSize(files[i].size)}</span>
+                    `;
+                    fileListDiv.appendChild(fileItem);
+                }
+            } else {
+                fileListDiv.style.display = 'none';
+            }
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            else return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
         processButton.addEventListener('click', async () => {
             const files = pdfFilesInput.files;
             if (files.length === 0) {
                 statusDiv.textContent = '請先選擇PDF檔案！';
+                statusDiv.className = 'status-error';
                 return;
             }
 
             statusDiv.textContent = '開始處理...';
+            statusDiv.className = 'status-processing';
             processButton.disabled = true;
-            tempCanvasContainer.style.display = 'block'; // 顯示調試用的canvas區域
+            tempCanvasContainer.style.display = 'block';
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
 
             // 初始化 jsPDF 實例 (A4 landscape)
             // A4 landscape: 297mm width x 210mm height
@@ -97,6 +383,36 @@
             const marginY = 0; 
 
             let totalPagesProcessedInOutput = 0;
+            let totalPagesToProcess = 0;
+            
+            // 先計算總頁數以便更新進度條
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileReader = new FileReader();
+                
+                await new Promise((resolve, reject) => {
+                    fileReader.onload = async (event) => {
+                        try {
+                            const typedarray = new Uint8Array(event.target.result);
+                            const loadingTask = pdfjsLib.getDocument({
+                                data: typedarray,
+                                cMapUrl: CMAP_URL,
+                                cMapPacked: true,
+                                standardFontDataUrl: STANDARD_FONT_DATA_URL
+                            });
+                            const pdfDoc = await loadingTask.promise;
+                            totalPagesToProcess += pdfDoc.numPages;
+                            resolve();
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    fileReader.onerror = reject;
+                    fileReader.readAsArrayBuffer(file);
+                }).catch(error => {
+                    console.error(`計算頁數時出錯:`, error);
+                });
+            }
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
@@ -118,7 +434,7 @@
                             statusDiv.textContent = `檔案 ${file.name} 有 ${pdfDoc.numPages} 頁。正在渲染...`;
 
                             for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
-                                statusDiv.innerHTML = `處理檔案 ${file.name}, 頁面 ${pageNum}/${pdfDoc.numPages}... <br>檢查下方臨時渲染區的文字是否正常。`;
+                                statusDiv.innerHTML = `處理檔案 ${file.name}, 頁面 ${pageNum}/${pdfDoc.numPages}... <br>檢查下方預覽區的文字是否正常。`;
                                 
                                 const page = await pdfDoc.getPage(pageNum);
                                 
@@ -132,37 +448,32 @@
                                 const renderContext = {
                                     canvasContext: tempCtx,
                                     viewport: viewport,
-                                    // 可選: 啟用以提高文本渲染質量，但可能稍慢
-                                    // enhanceTextSelection: true, 
                                 };
                                 await page.render(renderContext).promise;
                                 
-                                // 現在tempCanvas上應該有帶文字的渲染結果
-                                // 可以提示用戶檢查
-
-                                const imageDataUrl = tempCanvas.toDataURL('image/jpeg', 0.92); // JPEG質量，0.92是不錯的平衡
+                                const imageDataUrl = tempCanvas.toDataURL('image/jpeg', 0.92);
 
                                 // 每處理一個原始A5頁面，就在輸出PDF中新增一個A4頁面
-                                // 第一個檔案的第一頁不需要addPage，因為jsPDF初始化時已創建一頁
                                 if (totalPagesProcessedInOutput > 0) { 
                                     outputPdf.addPage();
                                 }
                                 totalPagesProcessedInOutput++;
                                 
                                 // 在A4頁面上添加兩次相同的A5圖像
-                                // 位置1: 左側
                                 outputPdf.addImage(imageDataUrl, 'JPEG', marginX, marginY, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
-                                // 位置2: 右側
                                 outputPdf.addImage(imageDataUrl, 'JPEG', marginX + TARGET_A5_WIDTH_MM, marginY, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
 
-                                // 為了調試，渲染完一頁後不清空Canvas，而是等待下一次覆蓋
-                                // tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height); 
-                                await new Promise(r => setTimeout(r, 50)); // 短暫停頓，讓瀏覽器有機會更新顯示
+                                // 更新進度條
+                                const progress = (totalPagesProcessedInOutput / totalPagesToProcess) * 100;
+                                progressBar.style.width = `${progress}%`;
+                                
+                                await new Promise(r => setTimeout(r, 50));
                             }
                             resolveFile();
                         } catch (error) {
                             console.error(`處理檔案 ${file.name} 時出錯:`, error);
                             statusDiv.textContent = `處理檔案 ${file.name} 時出錯: ${error.message}`;
+                            statusDiv.className = 'status-error';
                             rejectFile(error);
                         }
                     };
@@ -170,6 +481,7 @@
                     fileReader.onerror = (error) => {
                         console.error(`讀取檔案 ${file.name} 失敗:`, error);
                         statusDiv.textContent = `讀取檔案 ${file.name} 失敗.`;
+                        statusDiv.className = 'status-error';
                         rejectFile(error);
                     };
                     
@@ -181,15 +493,21 @@
                 statusDiv.textContent = '所有檔案處理完畢，正在生成PDF...';
                 outputPdf.save('A4_橫式拼貼結果.pdf');
                 statusDiv.textContent = 'PDF已生成並開始下載！請檢查PDF內容及文字是否正確。';
+                statusDiv.className = 'status-success';
             } else {
                 statusDiv.textContent = '沒有頁面被處理。';
+                statusDiv.className = 'status-error';
             }
 
             processButton.disabled = false;
-            pdfFilesInput.value = ""; // 清空選擇的檔案
-            // 可以選擇在處理完畢後隱藏Canvas
-            // tempCanvasContainer.style.display = 'none';
-            // tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+            pdfFilesInput.value = "";
+            updateFileList();
+            progressBar.style.width = '100%';
+            
+            // 3秒後隱藏進度條
+            setTimeout(() => {
+                progressContainer.style.display = 'none';
+            }, 3000);
         });
     </script>
 </body>
