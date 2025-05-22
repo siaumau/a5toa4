@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A5 PDF 轉 A4橫式 (2合1)</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        #status { margin-top: 15px; font-style: italic; color: #333; }
+        .controls { margin-bottom: 20px; }
+        #tempCanvasContainer {
+            border: 1px dashed #ccc;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        #tempCanvasContainer p { margin: 0 0 5px 0; font-weight: bold; }
+        #tempCanvas {
+            border: 1px solid #aaa;
+            max-width: 100%; /* Responsive canvas for viewing */
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>A5 PDF 轉 A4橫式 (每頁A4拼貼兩個相同A5頁面)</h1>
+    <p>選擇一個或多個A5 PDF檔案。系統會將每個A5頁面複製兩份，並排放置到新的A4橫式頁面上。</p>
+    
+    <div class="controls">
+        <input type="file" id="pdfFilesInput" multiple accept=".pdf">
+        <button id="processButton">開始處理</button>
+    </div>
+    
+    <div id="status">正在等待操作...</div>
+    
+    <!-- Canvas用於臨時渲染PDF頁面，方便調試 -->
+    <div id="tempCanvasContainer">
+        <p>臨時渲染區 (用於調試，檢查文字是否正確渲染到Canvas):</p>
+        <canvas id="tempCanvas"></canvas>
+    </div>
+
+    <!-- 引入函式庫 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script> // Worker script needs to be loaded after pdf.min.js
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        const pdfFilesInput = document.getElementById('pdfFilesInput');
+        const processButton = document.getElementById('processButton');
+        const statusDiv = document.getElementById('status');
+        const tempCanvas = document.getElementById('tempCanvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        const tempCanvasContainer = document.getElementById('tempCanvasContainer');
+
+        // PDF.js CMap 和 Standard Font Data URL (確保版本與 pdf.js 庫一致)
+        const PDFJS_VERSION = pdfjsLib.version; // "3.11.174"
+        const CMAP_URL = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/cmaps/`;
+        const STANDARD_FONT_DATA_URL = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/standard_fonts/`;
+
+        processButton.addEventListener('click', async () => {
+            const files = pdfFilesInput.files;
+            if (files.length === 0) {
+                statusDiv.textContent = '請先選擇PDF檔案！';
+                return;
+            }
+
+            statusDiv.textContent = '開始處理...';
+            processButton.disabled = true;
+            tempCanvasContainer.style.display = 'block'; // 顯示調試用的canvas區域
+
+            // 初始化 jsPDF 實例 (A4 landscape)
+            // A4 landscape: 297mm width x 210mm height
+            const { jsPDF } = window.jspdf;
+            const outputPdf = new jsPDF({
+                orientation: 'l', // landscape
+                unit: 'mm',
+                format: 'a4'
+            });
+            
+            const A4_LANDSCAPE_WIDTH_MM = 297;
+            const A4_LANDSCAPE_HEIGHT_MM = 210;
+
+            // 假設輸入的A5 PDF是直向 (148mm 寬 x 210mm 高)
+            // 我們要在A4橫向上並排放置兩個這樣的A5
+            // A5圖像的高度將是A4橫式的高度
+            const TARGET_A5_HEIGHT_MM = A4_LANDSCAPE_HEIGHT_MM; // 210mm
+            // 根據A5的原始長寬比 (148寬 / 210高) 計算目標寬度
+            const ORIGINAL_A5_ASPECT_RATIO_W_H = 148 / 210;
+            const TARGET_A5_WIDTH_MM = TARGET_A5_HEIGHT_MM * ORIGINAL_A5_ASPECT_RATIO_W_H; // 210 * (148/210) = 148mm
+            
+            // 計算在A4頁面上放置兩個A5圖像的位置 (居中)
+            const totalA5sOnPageWidth = TARGET_A5_WIDTH_MM * 2; // 148 * 2 = 296mm
+            const marginX = (A4_LANDSCAPE_WIDTH_MM - totalA5sOnPageWidth) / 2; // (297 - 296) / 2 = 0.5mm
+            // 垂直方向上，A5高度與A4橫式高度相同，所以頂部對齊 (無垂直邊距)
+            const marginY = 0; 
+
+            let totalPagesProcessedInOutput = 0;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                statusDiv.textContent = `正在處理檔案 ${i + 1} / ${files.length}: ${file.name}`;
+                
+                const fileReader = new FileReader();
+
+                await new Promise((resolveFile, rejectFile) => {
+                    fileReader.onload = async (event) => {
+                        try {
+                            const typedarray = new Uint8Array(event.target.result);
+                            const loadingTask = pdfjsLib.getDocument({
+                                data: typedarray,
+                                cMapUrl: CMAP_URL,
+                                cMapPacked: true,
+                                standardFontDataUrl: STANDARD_FONT_DATA_URL
+                            });
+                            const pdfDoc = await loadingTask.promise;
+                            statusDiv.textContent = `檔案 ${file.name} 有 ${pdfDoc.numPages} 頁。正在渲染...`;
+
+                            for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                                statusDiv.innerHTML = `處理檔案 ${file.name}, 頁面 ${pageNum}/${pdfDoc.numPages}... <br>檢查下方臨時渲染區的文字是否正常。`;
+                                
+                                const page = await pdfDoc.getPage(pageNum);
+                                
+                                // 使用較高的scale以獲得更好的圖像質量
+                                const scale = 2.5; // 可以嘗試調整 2, 2.5, 3
+                                const viewport = page.getViewport({ scale: scale });
+
+                                tempCanvas.width = viewport.width;
+                                tempCanvas.height = viewport.height;
+
+                                const renderContext = {
+                                    canvasContext: tempCtx,
+                                    viewport: viewport,
+                                    // 可選: 啟用以提高文本渲染質量，但可能稍慢
+                                    // enhanceTextSelection: true, 
+                                };
+                                await page.render(renderContext).promise;
+                                
+                                // 現在tempCanvas上應該有帶文字的渲染結果
+                                // 可以提示用戶檢查
+
+                                const imageDataUrl = tempCanvas.toDataURL('image/jpeg', 0.92); // JPEG質量，0.92是不錯的平衡
+
+                                // 每處理一個原始A5頁面，就在輸出PDF中新增一個A4頁面
+                                // 第一個檔案的第一頁不需要addPage，因為jsPDF初始化時已創建一頁
+                                if (totalPagesProcessedInOutput > 0) { 
+                                    outputPdf.addPage();
+                                }
+                                totalPagesProcessedInOutput++;
+                                
+                                // 在A4頁面上添加兩次相同的A5圖像
+                                // 位置1: 左側
+                                outputPdf.addImage(imageDataUrl, 'JPEG', marginX, marginY, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+                                // 位置2: 右側
+                                outputPdf.addImage(imageDataUrl, 'JPEG', marginX + TARGET_A5_WIDTH_MM, marginY, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+
+                                // 為了調試，渲染完一頁後不清空Canvas，而是等待下一次覆蓋
+                                // tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height); 
+                                await new Promise(r => setTimeout(r, 50)); // 短暫停頓，讓瀏覽器有機會更新顯示
+                            }
+                            resolveFile();
+                        } catch (error) {
+                            console.error(`處理檔案 ${file.name} 時出錯:`, error);
+                            statusDiv.textContent = `處理檔案 ${file.name} 時出錯: ${error.message}`;
+                            rejectFile(error);
+                        }
+                    };
+
+                    fileReader.onerror = (error) => {
+                        console.error(`讀取檔案 ${file.name} 失敗:`, error);
+                        statusDiv.textContent = `讀取檔案 ${file.name} 失敗.`;
+                        rejectFile(error);
+                    };
+                    
+                    fileReader.readAsArrayBuffer(file);
+                });
+            }
+
+            if (totalPagesProcessedInOutput > 0) {
+                statusDiv.textContent = '所有檔案處理完畢，正在生成PDF...';
+                outputPdf.save('A4_橫式拼貼結果.pdf');
+                statusDiv.textContent = 'PDF已生成並開始下載！請檢查PDF內容及文字是否正確。';
+            } else {
+                statusDiv.textContent = '沒有頁面被處理。';
+            }
+
+            processButton.disabled = false;
+            pdfFilesInput.value = ""; // 清空選擇的檔案
+            // 可以選擇在處理完畢後隱藏Canvas
+            // tempCanvasContainer.style.display = 'none';
+            // tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+        });
+    </script>
+</body>
+</html>
