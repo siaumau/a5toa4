@@ -95,7 +95,7 @@
             color: var(--primary-color);
         }
         
-        #pdfFilesInput {
+        #filesInput {
             position: absolute;
             top: 0;
             left: 0;
@@ -105,7 +105,13 @@
             cursor: pointer;
         }
         
-        #processButton {
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .button {
             background-color: var(--primary-color);
             color: white;
             border: none;
@@ -117,13 +123,29 @@
             min-width: 120px;
         }
         
-        #processButton:hover {
+        .button:hover {
             background-color: var(--accent-color);
         }
         
-        #processButton:disabled {
+        .button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
+        }
+        
+        .button.secondary {
+            background-color: #6c757d;
+        }
+        
+        .button.secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .button.success {
+            background-color: #28a745;
+        }
+        
+        .button.success:hover {
+            background-color: #218838;
         }
         
         #status {
@@ -152,6 +174,7 @@
             margin-top: 25px;
             padding: 15px;
             background-color: white;
+            display: none;
         }
         
         #tempCanvasContainer p {
@@ -174,17 +197,88 @@
         
         .file-list-item {
             background-color: #f1f5f9;
-            padding: 8px 12px;
-            margin-bottom: 8px;
-            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 200px;
         }
         
         .file-name {
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+            font-weight: 500;
+        }
+        
+        .file-type {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .file-size {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .file-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .page-count {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .print-count-input {
+            width: 60px;
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .print-count-label {
+            font-size: 12px;
+            color: #666;
+            white-space: nowrap;
+        }
+        
+        .orientation-select {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            background-color: white;
+            color: #333;
+        }
+        
+        .orientation-label {
+            font-size: 12px;
+            color: #666;
             white-space: nowrap;
         }
         
@@ -210,56 +304,233 @@
             color: #666;
             font-size: 14px;
         }
+
+        .supported-formats {
+            background-color: #e8f4fd;
+            border-left: 4px solid var(--primary-color);
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .supported-formats h3 {
+            margin: 0 0 8px 0;
+            color: var(--primary-color);
+            font-size: 16px;
+        }
+
+        .supported-formats ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .print-settings {
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .print-settings h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .settings-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .summary-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+        }
+        
+        .info-box h4 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+        
+        .info-box ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .info-box li {
+            margin-bottom: 5px;
+        }
+        
+        .result-actions {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #e8f5e9;
+            border-radius: var(--border-radius);
+            border: 1px solid #4caf50;
+        }
+        
+        .result-actions h3 {
+            margin-top: 0;
+            color: #2e7d32;
+        }
+        
+        .result-info {
+            margin-bottom: 15px;
+        }
+        
+        .result-info p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        
+        .result-info strong {
+            color: #2e7d32;
+        }
+
+        .error-details {
+            background-color: #ffebee;
+            border: 1px solid #f44336;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #c62828;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>A5 PDF 轉 A4橫式 (2合1)</h1>
-            <p class="description">將A5 PDF檔案轉換為A4橫式，每頁A4拼貼兩個相同的A5頁面，方便雙面列印後裁切。</p>
+            <p class="description">將A5 PDF檔案文件轉換為A4橫式，每頁A4拼貼兩個相同的A5頁面，方便雙面列印後裁切。</p>
         </header>
         
         <div class="card">
+            <div class="supported-formats">
+                <h3>支援的檔案格式：</h3>
+                <ul>
+                    <li>PDF 檔案 (.pdf)</li>
+                </ul>
+            </div>
+
             <div class="controls">
                 <div class="file-input-container">
                     <div class="custom-file-input">
                         <p>拖放檔案到此處或 <strong>點擊選擇檔案</strong></p>
+                        <p style="font-size: 12px; margin-top: 5px;">支援 PDF 檔案</p>
                     </div>
-                    <input type="file" id="pdfFilesInput" multiple accept=".pdf">
+                    <input type="file" id="filesInput" multiple accept=".pdf,.doc,.docx">
                 </div>
-                <button id="processButton">開始處理</button>
+                <button class="button" id="analyzeButton">分析檔案</button>
             </div>
             
             <div class="file-list" id="fileList"></div>
+            
+            <div class="print-settings" id="printSettings" style="display: none;">
+                <h3>列印設定</h3>
+                <div class="settings-summary">
+                    <div class="summary-item">
+                        <div class="summary-label">總檔案數</div>
+                        <div class="summary-value" id="totalFiles">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">總A5頁數</div>
+                        <div class="summary-value" id="totalA5Pages">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">預計A4張數</div>
+                        <div class="summary-value" id="totalA4Pages">0</div>
+                    </div>
+                </div>
+                
+                <div class="info-box">
+                    <h4>排版說明：</h4>
+                    <ul>
+                        <li><strong>橫式排版</strong>：每個 A5 頁面拼貼成一張 A4 橫向（左右各放一個相同的 A5）</li>
+                        <li><strong>直式排版</strong>：每個 A5 頁面拼貼成一張 A4 直向（上下各放一個相同的 A5）</li>
+                        <li>適合雙面列印後裁切，得到兩份相同的 A5 文件</li>
+                        <li>您可以個別調整每個檔案的頁數和排版方式</li>
+                    </ul>
+                </div>
+                <div class="button-group" style="margin-top: 20px;">
+                    <button class="button" id="processButton">開始處理</button>
+                </div>
+            </div>
             
             <div class="progress-container" id="progressContainer">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
             
             <div id="status">正在等待選擇檔案...</div>
+            
+            <div class="result-actions" id="resultActions">
+                <h3>處理完成！</h3>
+                <div class="result-info">
+                    <p>總共處理了 <strong id="processedA5Pages">0</strong> 個 A5 頁面</p>
+                    <p>生成了 <strong id="generatedA4Pages">0</strong> 張 A4 頁面</p>
+                </div>
+                <div class="button-group">
+                    <button class="button success" id="downloadButton">下載 PDF</button>
+                    <button class="button secondary" id="resetButton">重新選擇檔案</button>
+                </div>
+            </div>
         </div>
         
-        <!-- Canvas用於臨時渲染PDF頁面 -->
+        <!-- Canvas用於臨時渲染頁面 -->
         <div id="tempCanvasContainer">
-            <p>預覽區 (檢查文字渲染效果):</p>
+            <p>預覽區 (檢查內容渲染效果):</p>
             <canvas id="tempCanvas"></canvas>
         </div>
         
         <footer>
-            <p>© 2023 A5轉A4工具 | 使用 PDF.js 與 jsPDF 開發</p>
+            <p>© 2023 A5轉A4工具 | 使用 PDF.js、jsPDF 與 Mammoth.js 開發</p>
         </footer>
     </div>
 
     <!-- 引入函式庫 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script> // Worker script needs to be loaded after pdf.min.js
+    <script>
       pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 
     <script>
-        const pdfFilesInput = document.getElementById('pdfFilesInput');
+        const filesInput = document.getElementById('filesInput');
+        const analyzeButton = document.getElementById('analyzeButton');
         const processButton = document.getElementById('processButton');
+        const downloadButton = document.getElementById('downloadButton');
+        const resetButton = document.getElementById('resetButton');
         const statusDiv = document.getElementById('status');
         const tempCanvas = document.getElementById('tempCanvas');
         const tempCtx = tempCanvas.getContext('2d');
@@ -267,9 +538,14 @@
         const fileListDiv = document.getElementById('fileList');
         const progressContainer = document.getElementById('progressContainer');
         const progressBar = document.getElementById('progressBar');
+        const printSettings = document.getElementById('printSettings');
+        const resultActions = document.getElementById('resultActions');
 
-        // PDF.js CMap 和 Standard Font Data URL (確保版本與 pdf.js 庫一致)
-        const PDFJS_VERSION = pdfjsLib.version; // "3.11.174"
+        let fileAnalysisResults = [];
+        let generatedPDF = null;
+
+        // PDF.js CMap 和 Standard Font Data URL
+        const PDFJS_VERSION = pdfjsLib.version;
         const CMAP_URL = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/cmaps/`;
         const STANDARD_FONT_DATA_URL = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/standard_fonts/`;
 
@@ -308,25 +584,48 @@
         function handleDrop(e) {
             const dt = e.dataTransfer;
             const files = dt.files;
-            pdfFilesInput.files = files;
+            filesInput.files = files;
             updateFileList();
         }
         
         // 更新檔案列表顯示
-        pdfFilesInput.addEventListener('change', updateFileList);
+        filesInput.addEventListener('change', updateFileList);
         
         function updateFileList() {
-            const files = pdfFilesInput.files;
+            const files = filesInput.files;
             if (files.length > 0) {
                 fileListDiv.innerHTML = '';
                 fileListDiv.style.display = 'block';
                 
                 for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const fileExtension = file.name.split('.').pop().toLowerCase();
+                    let fileType = '';
+                    
+                    if (fileExtension === 'pdf') {
+                        fileType = 'PDF';
+                    } else if (fileExtension === 'doc' || fileExtension === 'docx') {
+                        fileType = 'Word';
+                    }
+                    
                     const fileItem = document.createElement('div');
                     fileItem.className = 'file-list-item';
                     fileItem.innerHTML = `
-                        <span class="file-name">${files[i].name}</span>
-                        <span class="file-size">${formatFileSize(files[i].size)}</span>
+                        <div class="file-info">
+                            <span class="file-name" title="${file.name}">${file.name}</span>
+                            <span class="file-type">${fileType}</span>
+                            <span class="file-size">${formatFileSize(file.size)}</span>
+                        </div>
+                        <div class="file-controls">
+                            <span class="page-count" id="pageCount_${i}">分析中...</span>
+                            <span class="print-count-label">列印頁數:</span>
+                            <input type="number" class="print-count-input" id="printCount_${i}" value="0" min="0" disabled>
+                            <span class="orientation-label">排版:</span>
+                            <select class="orientation-select" id="orientation_${i}" disabled>
+                                <option value="landscape">橫式 (左右並排)</option>
+                                <option value="portrait">直式 (上下並排)</option>
+                            </select>
+                        </div>
                     `;
                     fileListDiv.appendChild(fileItem);
                 }
@@ -341,10 +640,393 @@
             else return (bytes / 1048576).toFixed(1) + ' MB';
         }
 
-        processButton.addEventListener('click', async () => {
-            const files = pdfFilesInput.files;
+        // 分析檔案並計算頁數
+        async function analyzeFiles() {
+            const files = filesInput.files;
             if (files.length === 0) {
-                statusDiv.textContent = '請先選擇PDF檔案！';
+                statusDiv.textContent = '請先選擇檔案！';
+                statusDiv.className = 'status-error';
+                return;
+            }
+
+            statusDiv.textContent = '正在分析檔案...';
+            statusDiv.className = 'status-processing';
+            analyzeButton.disabled = true;
+            fileAnalysisResults = [];
+
+            try {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const fileExtension = file.name.split('.').pop().toLowerCase();
+                    const pageCountSpan = document.getElementById(`pageCount_${i}`);
+                    const printCountInput = document.getElementById(`printCount_${i}`);
+                    
+                    pageCountSpan.textContent = '分析中...';
+                    
+                    let pageCount = 0;
+                    let error = null;
+                    
+                    try {
+                        if (fileExtension === 'pdf') {
+                            pageCount = await countPDFPages(file);
+                        } else if (fileExtension === 'doc' || fileExtension === 'docx') {
+                            // Word 檔案直接設為1頁，不做複雜驗證
+                            pageCount = 1;
+                        }
+                    } catch (err) {
+                        console.error(`分析檔案 ${file.name} 時出錯:`, err);
+                        error = err.message;
+                        pageCount = 0;
+                    }
+                    
+                    fileAnalysisResults.push({
+                        file: file,
+                        fileName: file.name,
+                        pageCount: pageCount,
+                        error: error,
+                        fileIndex: i
+                    });
+                    
+                    const orientationSelect = document.getElementById(`orientation_${i}`);
+                    
+                    if (error) {
+                        pageCountSpan.textContent = '錯誤';
+                        pageCountSpan.style.backgroundColor = '#ffcdd2';
+                        pageCountSpan.style.color = '#c62828';
+                        pageCountSpan.title = error;
+                        printCountInput.value = 0;
+                        printCountInput.max = 0;
+                        orientationSelect.disabled = true;
+                    } else {
+                        pageCountSpan.textContent = `${pageCount} 頁`;
+                        pageCountSpan.style.backgroundColor = '#e3f2fd';
+                        pageCountSpan.style.color = '#1976d2';
+                        printCountInput.value = pageCount;
+                        printCountInput.max = pageCount;
+                        printCountInput.disabled = false;
+                        orientationSelect.disabled = false;
+                    }
+                }
+
+                updateSummary();
+                printSettings.style.display = 'block';
+                statusDiv.textContent = '分析完成！請設定列印參數。';
+                statusDiv.className = 'status-success';
+
+                // 添加列印頁數變更監聽器
+                for (let i = 0; i < files.length; i++) {
+                    const printCountInput = document.getElementById(`printCount_${i}`);
+                    const orientationSelect = document.getElementById(`orientation_${i}`);
+                    printCountInput.addEventListener('input', updateSummary);
+                    orientationSelect.addEventListener('change', updateSummary);
+                }
+
+            } catch (error) {
+                console.error('分析檔案時出錯:', error);
+                statusDiv.textContent = `分析檔案時出錯: ${error.message}`;
+                statusDiv.className = 'status-error';
+            }
+
+            analyzeButton.disabled = false;
+        }
+
+        // 更新摘要資訊
+        function updateSummary() {
+            const totalFilesSpan = document.getElementById('totalFiles');
+            const totalA5PagesSpan = document.getElementById('totalA5Pages');
+            const totalA4PagesSpan = document.getElementById('totalA4Pages');
+            
+            let totalA5Pages = 0;
+            let validFiles = 0;
+            
+            fileAnalysisResults.forEach(result => {
+                if (!result.error) {
+                    validFiles++;
+                    const printCountInput = document.getElementById(`printCount_${result.fileIndex}`);
+                    const printCount = parseInt(printCountInput.value) || 0;
+                    totalA5Pages += printCount;
+                }
+            });
+            
+            totalFilesSpan.textContent = validFiles;
+            totalA5PagesSpan.textContent = totalA5Pages;
+            totalA4PagesSpan.textContent = totalA5Pages; // 每個A5頁面需要一張A4
+        }
+
+        // 驗證Word檔案是否可以正常讀取（現在不使用這個函數了）
+        async function validateWordFile(file) {
+            // 這個函數現在不再使用，Word檔案直接視為1頁
+            return true;
+        }
+
+        // 計算 PDF 頁數
+        async function countPDFPages(file) {
+            return new Promise((resolve, reject) => {
+                const fileReader = new FileReader();
+                fileReader.onload = async (event) => {
+                    try {
+                        const typedarray = new Uint8Array(event.target.result);
+                        const loadingTask = pdfjsLib.getDocument({
+                            data: typedarray,
+                            cMapUrl: CMAP_URL,
+                            cMapPacked: true,
+                            standardFontDataUrl: STANDARD_FONT_DATA_URL
+                        });
+                        const pdfDoc = await loadingTask.promise;
+                        resolve(pdfDoc.numPages);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                fileReader.onerror = reject;
+                fileReader.readAsArrayBuffer(file);
+            });
+        }
+
+        // 改進的Word轉Canvas函數 - 使用更安全的處理方式
+        async function convertWordToCanvas(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async function(event) {
+                    let content = '';
+                    let isSuccessful = false;
+                    
+                    try {
+                        const arrayBuffer = event.target.result;
+                        
+                        // 方法1: 嘗試提取純文字（最安全）
+                        try {
+                            const textResult = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                            if (textResult.value && textResult.value.trim()) {
+                                content = textResult.value;
+                                isSuccessful = true;
+                                console.log('成功使用純文字提取方式');
+                            }
+                        } catch (textError) {
+                            console.log('純文字提取失敗，嘗試其他方法:', textError.message);
+                        }
+                        
+                        // 方法2: 如果純文字提取失敗，嘗試簡化的HTML轉換
+                        if (!isSuccessful) {
+                            try {
+                                const htmlResult = await mammoth.convertToHtml({ 
+                                    arrayBuffer: arrayBuffer,
+                                    // 完全跳過圖片和樣式，只處理文字
+                                    convertImage: function() {
+                                        return { src: "" };
+                                    },
+                                    // 簡化選項
+                                    options: {
+                                        ignoreEmptyParagraphs: false
+                                    }
+                                });
+                                
+                                if (htmlResult.value) {
+                                    // 使用正則表達式而不是DOM操作來提取文字
+                                    content = htmlResult.value
+                                        .replace(/<[^>]*>/g, ' ')  // 移除HTML標籤
+                                        .replace(/\s+/g, ' ')      // 合併多個空格
+                                        .trim();
+                                    
+                                    if (content) {
+                                        isSuccessful = true;
+                                        console.log('成功使用HTML轉換方式');
+                                    }
+                                }
+                            } catch (htmlError) {
+                                console.log('HTML轉換也失敗:', htmlError.message);
+                            }
+                        }
+                        
+                    } catch (overallError) {
+                        console.log('Word檔案處理完全失敗:', overallError.message);
+                    }
+                    
+                    // 如果所有方法都失敗，創建一個基本的文件頁面
+                    if (!isSuccessful || !content.trim()) {
+                        content = `檔案名稱: ${file.name}\n\n此 Word 檔案已成功載入，但內容解析遇到困難。\n這可能是因為：\n1. 檔案格式較舊（.doc格式）\n2. 檔案包含複雜的格式或物件\n3. 檔案內容以表格或圖片為主\n\n檔案大小: ${formatFileSize(file.size)}\n處理時間: ${new Date().toLocaleString()}`;
+                        console.log('使用備用內容生成');
+                    }
+                    
+                    // 創建Canvas並渲染內容
+                    try {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // 設置Canvas尺寸 (A5 比例)
+                        const scale = 2;
+                        canvas.width = 420 * scale;
+                        canvas.height = 595 * scale;
+                        
+                        // 白色背景
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        // 設置文字樣式
+                        ctx.scale(scale, scale);
+                        ctx.fillStyle = 'black';
+                        
+                        // 渲染標題
+                        ctx.font = 'bold 16px Microsoft JhengHei, Arial, sans-serif';
+                        ctx.fillStyle = '#333';
+                        ctx.fillText(`Word文件: ${file.name}`, 30, 40);
+                        
+                        // 畫一條分隔線
+                        ctx.strokeStyle = '#ccc';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(30, 50);
+                        ctx.lineTo(390, 50);
+                        ctx.stroke();
+                        
+                        // 渲染內容
+                        ctx.font = '14px Microsoft JhengHei, Arial, sans-serif';
+                        ctx.fillStyle = 'black';
+                        
+                        const lines = content.split('\n');
+                        let y = 80;
+                        const lineHeight = 22;
+                        const maxWidth = 360;
+                        const maxHeight = 550;
+                        
+                        for (let line of lines) {
+                            if (y > maxHeight) {
+                                // 如果內容太長，添加省略提示
+                                ctx.fillStyle = '#666';
+                                ctx.font = '12px Microsoft JhengHei, Arial, sans-serif';  
+                                ctx.fillText('...（內容過長，已截斷）', 30, y);
+                                break;
+                            }
+                            
+                            if (line.trim()) {
+                                // 處理過長的行
+                                const words = line.split('');  // 中文按字符分割
+                                let currentLine = '';
+                                
+                                for (let char of words) {
+                                    const testLine = currentLine + char;
+                                    const metrics = ctx.measureText(testLine);
+                                    
+                                    if (metrics.width > maxWidth && currentLine !== '') {
+                                        ctx.fillText(currentLine, 30, y);
+                                        currentLine = char;
+                                        y += lineHeight;
+                                        if (y > maxHeight) break;
+                                    } else {
+                                        currentLine = testLine;
+                                    }
+                                }
+                                
+                                if (currentLine && y <= maxHeight) {
+                                    ctx.fillText(currentLine, 30, y);
+                                    y += lineHeight;
+                                }
+                            } else {
+                                y += lineHeight * 0.6; // 空行
+                            }
+                        }
+                        
+                        // 添加頁腳
+                        ctx.fillStyle = '#999';
+                        ctx.font = '10px Microsoft JhengHei, Arial, sans-serif';
+                        ctx.fillText(`轉換時間: ${new Date().toLocaleString()}`, 30, 580);
+                        
+                        // 轉換為圖片
+                        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+                        resolve(imageDataUrl);
+                        
+                    } catch (canvasError) {
+                        console.error('Canvas渲染錯誤:', canvasError);
+                        reject(new Error('Canvas渲染失敗: ' + canvasError.message));
+                    }
+                };
+                
+                reader.onerror = function(error) {
+                    reject(new Error('讀取檔案失敗: ' + error.message));
+                };
+                
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // 處理 PDF 檔案並收集指定頁面的圖像
+        async function collectPDFPages(file, maxPages) {
+            return new Promise(async (resolveFile, rejectFile) => {
+                const fileReader = new FileReader();
+                
+                fileReader.onload = async (event) => {
+                    try {
+                        const typedarray = new Uint8Array(event.target.result);
+                        const loadingTask = pdfjsLib.getDocument({
+                            data: typedarray,
+                            cMapUrl: CMAP_URL,
+                            cMapPacked: true,
+                            standardFontDataUrl: STANDARD_FONT_DATA_URL
+                        });
+                        const pdfDoc = await loadingTask.promise;
+                        
+                        const pageImages = [];
+                        const actualPages = Math.min(pdfDoc.numPages, maxPages);
+                        
+                        for (let pageNum = 1; pageNum <= actualPages; pageNum++) {
+                            const imageData = await renderPDFPageToImage(pdfDoc, pageNum, file.name);
+                            pageImages.push(imageData);
+                        }
+                        
+                        resolveFile(pageImages);
+                    } catch (error) {
+                        rejectFile(error);
+                    }
+                };
+                
+                fileReader.onerror = rejectFile;
+                fileReader.readAsArrayBuffer(file);
+            });
+        }
+
+        // 渲染 PDF 頁面為圖像
+        async function renderPDFPageToImage(pdfDoc, pageNum, fileName) {
+            statusDiv.innerHTML = `處理檔案 ${fileName}, 頁面 ${pageNum}...`;
+            
+            const page = await pdfDoc.getPage(pageNum);
+            const scale = 2.5;
+            const viewport = page.getViewport({ scale: scale });
+
+            tempCanvas.width = viewport.width;
+            tempCanvas.height = viewport.height;
+
+            const renderContext = {
+                canvasContext: tempCtx,
+                viewport: viewport,
+            };
+            await page.render(renderContext).promise;
+            
+            const imageDataUrl = tempCanvas.toDataURL('image/jpeg', 0.92);
+            await new Promise(r => setTimeout(r, 50));
+            
+            return imageDataUrl;
+        }
+
+        // 處理所有檔案並生成 PDF
+        async function processFiles() {
+            const validResults = fileAnalysisResults.filter(result => !result.error);
+            
+            if (validResults.length === 0) {
+                statusDiv.textContent = '沒有可處理的檔案！';
+                statusDiv.className = 'status-error';
+                return;
+            }
+
+            // 檢查是否有設定要列印的頁數
+            let totalPagesToProcess = 0;
+            for (let result of validResults) {
+                const printCountInput = document.getElementById(`printCount_${result.fileIndex}`);
+                const printCount = parseInt(printCountInput.value) || 0;
+                totalPagesToProcess += printCount;
+            }
+
+            if (totalPagesToProcess === 0) {
+                statusDiv.textContent = '請至少設定一個檔案的列印頁數！';
                 statusDiv.className = 'status-error';
                 return;
             }
@@ -356,158 +1038,173 @@
             progressContainer.style.display = 'block';
             progressBar.style.width = '0%';
 
-            // 初始化 jsPDF 實例 (A4 landscape)
-            // A4 landscape: 297mm width x 210mm height
-            const { jsPDF } = window.jspdf;
-            const outputPdf = new jsPDF({
-                orientation: 'l', // landscape
-                unit: 'mm',
-                format: 'a4'
-            });
-            
-            const A4_LANDSCAPE_WIDTH_MM = 297;
-            const A4_LANDSCAPE_HEIGHT_MM = 210;
-
-            // 假設輸入的A5 PDF是直向 (148mm 寬 x 210mm 高)
-            // 我們要在A4橫向上並排放置兩個這樣的A5
-            // A5圖像的高度將是A4橫式的高度
-            const TARGET_A5_HEIGHT_MM = A4_LANDSCAPE_HEIGHT_MM; // 210mm
-            // 根據A5的原始長寬比 (148寬 / 210高) 計算目標寬度
-            const ORIGINAL_A5_ASPECT_RATIO_W_H = 148 / 210;
-            const TARGET_A5_WIDTH_MM = TARGET_A5_HEIGHT_MM * ORIGINAL_A5_ASPECT_RATIO_W_H; // 210 * (148/210) = 148mm
-            
-            // 計算在A4頁面上放置兩個A5圖像的位置 (居中)
-            const totalA5sOnPageWidth = TARGET_A5_WIDTH_MM * 2; // 148 * 2 = 296mm
-            const marginX = (A4_LANDSCAPE_WIDTH_MM - totalA5sOnPageWidth) / 2; // (297 - 296) / 2 = 0.5mm
-            // 垂直方向上，A5高度與A4橫式高度相同，所以頂部對齊 (無垂直邊距)
-            const marginY = 0; 
-
-            let totalPagesProcessedInOutput = 0;
-            let totalPagesToProcess = 0;
-            
-            // 先計算總頁數以便更新進度條
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const fileReader = new FileReader();
-                
-                await new Promise((resolve, reject) => {
-                    fileReader.onload = async (event) => {
-                        try {
-                            const typedarray = new Uint8Array(event.target.result);
-                            const loadingTask = pdfjsLib.getDocument({
-                                data: typedarray,
-                                cMapUrl: CMAP_URL,
-                                cMapPacked: true,
-                                standardFontDataUrl: STANDARD_FONT_DATA_URL
-                            });
-                            const pdfDoc = await loadingTask.promise;
-                            totalPagesToProcess += pdfDoc.numPages;
-                            resolve();
-                        } catch (error) {
-                            reject(error);
-                        }
-                    };
-                    fileReader.onerror = reject;
-                    fileReader.readAsArrayBuffer(file);
-                }).catch(error => {
-                    console.error(`計算頁數時出錯:`, error);
+            try {
+                const { jsPDF } = window.jspdf;
+                generatedPDF = new jsPDF({
+                    orientation: 'l', // 預設橫向，後續會根據需要調整
+                    unit: 'mm',
+                    format: 'a4'
                 });
-            }
 
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                statusDiv.textContent = `正在處理檔案 ${i + 1} / ${files.length}: ${file.name}`;
-                
-                const fileReader = new FileReader();
+                let totalProcessedPages = 0;
+                let totalA4Pages = 0;
+                let isFirstPage = true;
+                let processedFiles = 0;
 
-                await new Promise((resolveFile, rejectFile) => {
-                    fileReader.onload = async (event) => {
-                        try {
-                            const typedarray = new Uint8Array(event.target.result);
-                            const loadingTask = pdfjsLib.getDocument({
-                                data: typedarray,
-                                cMapUrl: CMAP_URL,
-                                cMapPacked: true,
-                                standardFontDataUrl: STANDARD_FONT_DATA_URL
-                            });
-                            const pdfDoc = await loadingTask.promise;
-                            statusDiv.textContent = `檔案 ${file.name} 有 ${pdfDoc.numPages} 頁。正在渲染...`;
-
-                            for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
-                                statusDiv.innerHTML = `處理檔案 ${file.name}, 頁面 ${pageNum}/${pdfDoc.numPages}... <br>檢查下方預覽區的文字是否正常。`;
-                                
-                                const page = await pdfDoc.getPage(pageNum);
-                                
-                                // 使用較高的scale以獲得更好的圖像質量
-                                const scale = 2.5; // 可以嘗試調整 2, 2.5, 3
-                                const viewport = page.getViewport({ scale: scale });
-
-                                tempCanvas.width = viewport.width;
-                                tempCanvas.height = viewport.height;
-
-                                const renderContext = {
-                                    canvasContext: tempCtx,
-                                    viewport: viewport,
-                                };
-                                await page.render(renderContext).promise;
-                                
-                                const imageDataUrl = tempCanvas.toDataURL('image/jpeg', 0.92);
-
-                                // 每處理一個原始A5頁面，就在輸出PDF中新增一個A4頁面
-                                if (totalPagesProcessedInOutput > 0) { 
-                                    outputPdf.addPage();
-                                }
-                                totalPagesProcessedInOutput++;
-                                
-                                // 在A4頁面上添加兩次相同的A5圖像
-                                outputPdf.addImage(imageDataUrl, 'JPEG', marginX, marginY, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
-                                outputPdf.addImage(imageDataUrl, 'JPEG', marginX + TARGET_A5_WIDTH_MM, marginY, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
-
-                                // 更新進度條
-                                const progress = (totalPagesProcessedInOutput / totalPagesToProcess) * 100;
-                                progressBar.style.width = `${progress}%`;
-                                
-                                await new Promise(r => setTimeout(r, 50));
-                            }
-                            resolveFile();
-                        } catch (error) {
-                            console.error(`處理檔案 ${file.name} 時出錯:`, error);
-                            statusDiv.textContent = `處理檔案 ${file.name} 時出錯: ${error.message}`;
-                            statusDiv.className = 'status-error';
-                            rejectFile(error);
-                        }
-                    };
-
-                    fileReader.onerror = (error) => {
-                        console.error(`讀取檔案 ${file.name} 失敗:`, error);
-                        statusDiv.textContent = `讀取檔案 ${file.name} 失敗.`;
-                        statusDiv.className = 'status-error';
-                        rejectFile(error);
-                    };
+                // 處理每個檔案
+                for (let result of validResults) {
+                    const printCountInput = document.getElementById(`printCount_${result.fileIndex}`);
+                    const orientationSelect = document.getElementById(`orientation_${result.fileIndex}`);
+                    const printCount = parseInt(printCountInput.value) || 0;
+                    const orientation = orientationSelect.value;
                     
-                    fileReader.readAsArrayBuffer(file);
-                });
-            }
+                    if (printCount === 0) continue;
 
-            if (totalPagesProcessedInOutput > 0) {
-                statusDiv.textContent = '所有檔案處理完畢，正在生成PDF...';
-                outputPdf.save('A4_橫式拼貼結果.pdf');
-                statusDiv.textContent = 'PDF已生成並開始下載！請檢查PDF內容及文字是否正確。';
-                statusDiv.className = 'status-success';
-            } else {
-                statusDiv.textContent = '沒有頁面被處理。';
+                    statusDiv.textContent = `正在處理檔案: ${result.fileName} (${orientation === 'landscape' ? '橫式' : '直式'})`;
+
+                    let pageImages = [];
+                    const fileExtension = result.fileName.split('.').pop().toLowerCase();
+                    
+                    try {
+                        if (fileExtension === 'pdf') {
+                            pageImages = await collectPDFPages(result.file, printCount);
+                        } else if (fileExtension === 'doc' || fileExtension === 'docx') {
+                            if (printCount > 0) {
+                                const imageData = await convertWordToCanvas(result.file);
+                                pageImages = [imageData];
+                                
+                                // 在預覽區顯示轉換結果
+                                const img = new Image();
+                                img.onload = function() {
+                                    tempCanvas.width = img.width;
+                                    tempCanvas.height = img.height;
+                                    tempCtx.drawImage(img, 0, 0);
+                                };
+                                img.src = imageData;
+                            }
+                        }
+
+                        // 將頁面添加到PDF，根據選擇的方向
+                        for (let i = 0; i < pageImages.length; i++) {
+                            const imageDataUrl = pageImages[i];
+                            
+                            if (orientation === 'landscape') {
+                                // 橫式排版 - A4橫向，左右並排
+                                if (!isFirstPage) {
+                                    generatedPDF.addPage('a4', 'l');
+                                } else {
+                                    // 第一頁已經是橫向，不需要添加
+                                    isFirstPage = false;
+                                }
+                                
+                                const A4_LANDSCAPE_WIDTH_MM = 297;
+                                const A4_LANDSCAPE_HEIGHT_MM = 210;
+                                const TARGET_A5_HEIGHT_MM = A4_LANDSCAPE_HEIGHT_MM;
+                                const ORIGINAL_A5_ASPECT_RATIO = 148 / 210;
+                                const TARGET_A5_WIDTH_MM = TARGET_A5_HEIGHT_MM * ORIGINAL_A5_ASPECT_RATIO;
+                                const marginX = (A4_LANDSCAPE_WIDTH_MM - TARGET_A5_WIDTH_MM * 2) / 2;
+                                
+                                generatedPDF.addImage(imageDataUrl, 'JPEG', marginX, 0, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+                                generatedPDF.addImage(imageDataUrl, 'JPEG', marginX + TARGET_A5_WIDTH_MM, 0, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+                                
+                            } else {
+                                // 直式排版 - A4直向，上下並排
+                                if (!isFirstPage) {
+                                    generatedPDF.addPage('a4', 'p');
+                                } else {
+                                    // 如果第一頁需要直向，重新設置
+                                    generatedPDF = new jsPDF({
+                                        orientation: 'p',
+                                        unit: 'mm',
+                                        format: 'a4'
+                                    });
+                                    isFirstPage = false;
+                                }
+                                
+                                const A4_PORTRAIT_WIDTH_MM = 210;
+                                const A4_PORTRAIT_HEIGHT_MM = 297;
+                                const TARGET_A5_WIDTH_MM = A4_PORTRAIT_WIDTH_MM;
+                                const ORIGINAL_A5_ASPECT_RATIO = 210 / 148; 
+                                const TARGET_A5_HEIGHT_MM = TARGET_A5_WIDTH_MM / ORIGINAL_A5_ASPECT_RATIO;
+                                const marginY = (A4_PORTRAIT_HEIGHT_MM - TARGET_A5_HEIGHT_MM * 2) / 2;
+                                
+                                generatedPDF.addImage(imageDataUrl, 'JPEG', 0, marginY, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+                                generatedPDF.addImage(imageDataUrl, 'JPEG', 0, marginY + TARGET_A5_HEIGHT_MM, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+                            }
+                            
+                            totalA4Pages++;
+                            totalProcessedPages++;
+                            
+                            const progress = (totalProcessedPages / totalPagesToProcess) * 100;
+                            progressBar.style.width = `${progress}%`;
+                        }
+
+                    } catch (error) {
+                        console.error(`處理檔案 ${result.fileName} 時出錯:`, error);
+                        statusDiv.innerHTML = `處理檔案 ${result.fileName} 時出錯: ${error.message}`;
+                        statusDiv.className = 'status-error';
+                        
+                        // 顯示錯誤詳情
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-details';
+                        errorDiv.textContent = `錯誤詳情: ${error.stack || error.message}`;
+                        statusDiv.appendChild(errorDiv);
+                    }
+                    
+                    processedFiles++;
+                }
+
+                if (totalProcessedPages > 0) {
+                    statusDiv.textContent = 'PDF 生成完成！';
+                    statusDiv.className = 'status-success';
+                    progressBar.style.width = '100%';
+                    
+                    // 顯示結果資訊
+                    document.getElementById('processedA5Pages').textContent = totalProcessedPages;
+                    document.getElementById('generatedA4Pages').textContent = totalA4Pages;
+                    resultActions.style.display = 'block';
+                    printSettings.style.display = 'none';
+                } else {
+                    statusDiv.textContent = '沒有成功處理任何頁面！';
+                    statusDiv.className = 'status-error';
+                }
+
+            } catch (error) {
+                console.error('處理過程中出錯:', error);
+                statusDiv.textContent = `處理過程中出錯: ${error.message}`;
                 statusDiv.className = 'status-error';
             }
 
             processButton.disabled = false;
-            pdfFilesInput.value = "";
-            updateFileList();
-            progressBar.style.width = '100%';
             
-            // 3秒後隱藏進度條
             setTimeout(() => {
-                progressContainer.style.display = 'none';
+                tempCanvasContainer.style.display = 'none';
             }, 3000);
+        }
+
+        // 按鈕事件處理
+        analyzeButton.addEventListener('click', analyzeFiles);
+        processButton.addEventListener('click', processFiles);
+
+        downloadButton.addEventListener('click', () => {
+            if (generatedPDF) {
+                const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
+                generatedPDF.save(`A4_橫式拼貼結果_${timestamp}.pdf`);
+            }
+        });
+
+        resetButton.addEventListener('click', () => {
+            // 重置整個頁面狀態
+            filesInput.value = '';
+            fileListDiv.style.display = 'none';
+            printSettings.style.display = 'none';
+            resultActions.style.display = 'none';
+            progressContainer.style.display = 'none';
+            tempCanvasContainer.style.display = 'none';
+            statusDiv.textContent = '正在等待選擇檔案...';
+            statusDiv.className = '';
+            fileAnalysisResults = [];
+            generatedPDF = null;
         });
     </script>
 </body>
