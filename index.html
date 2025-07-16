@@ -483,6 +483,15 @@
                         <li>您可以個別調整每個檔案的頁數和排版方式</li>
                     </ul>
                 </div>
+                <div class="global-print-controls" style="margin-top: 20px; display: flex; align-items: center; gap: 20px;">
+                    <span class="print-count-label" id="globalPrintCountLabel">列印頁數:</span>
+                    <input type="number" class="print-count-input" id="globalPrintCount" value="10" min="1">
+                    <span class="orientation-label" id="globalOrientationLabel">排版:</span>
+                    <select class="orientation-select" id="globalOrientation">
+                        <option value="landscape">橫式 (左右並排)</option>
+                        <option value="portrait">直式 (上下並排)</option>
+                    </select>
+                </div>
                 <div class="button-group" style="margin-top: 20px;">
                     <button class="button" id="processButton">開始處理</button>
                 </div>
@@ -619,13 +628,6 @@
                         </div>
                         <div class="file-controls">
                             <span class="page-count" id="pageCount_${i}">分析中...</span>
-                            <span class="print-count-label">列印頁數:</span>
-                            <input type="number" class="print-count-input" id="printCount_${i}" value="0" min="0" disabled>
-                            <span class="orientation-label">排版:</span>
-                            <select class="orientation-select" id="orientation_${i}" disabled>
-                                <option value="landscape">橫式 (左右並排)</option>
-                                <option value="portrait">直式 (上下並排)</option>
-                            </select>
                         </div>
                     `;
                     fileListDiv.appendChild(fileItem);
@@ -660,13 +662,11 @@
                     const file = files[i];
                     const fileExtension = file.name.split('.').pop().toLowerCase();
                     const pageCountSpan = document.getElementById(`pageCount_${i}`);
-                    const printCountInput = document.getElementById(`printCount_${i}`);
-                    
                     pageCountSpan.textContent = '分析中...';
-                    
+
                     let pageCount = 0;
                     let error = null;
-                    
+
                     try {
                         if (fileExtension === 'pdf') {
                             pageCount = await countPDFPages(file);
@@ -679,7 +679,7 @@
                         error = err.message;
                         pageCount = 0;
                     }
-                    
+
                     fileAnalysisResults.push({
                         file: file,
                         fileName: file.name,
@@ -687,25 +687,16 @@
                         error: error,
                         fileIndex: i
                     });
-                    
-                    const orientationSelect = document.getElementById(`orientation_${i}`);
-                    
+
                     if (error) {
                         pageCountSpan.textContent = '錯誤';
                         pageCountSpan.style.backgroundColor = '#ffcdd2';
                         pageCountSpan.style.color = '#c62828';
                         pageCountSpan.title = error;
-                        printCountInput.value = 0;
-                        printCountInput.max = 0;
-                        orientationSelect.disabled = true;
                     } else {
                         pageCountSpan.textContent = `${pageCount} 頁`;
                         pageCountSpan.style.backgroundColor = '#e3f2fd';
                         pageCountSpan.style.color = '#1976d2';
-                        printCountInput.value = pageCount;
-                        printCountInput.max = pageCount;
-                        printCountInput.disabled = false;
-                        orientationSelect.disabled = false;
                     }
                 }
 
@@ -714,13 +705,9 @@
                 statusDiv.textContent = '分析完成！請設定列印參數。';
                 statusDiv.className = 'status-success';
 
-                // 添加列印頁數變更監聽器
-                for (let i = 0; i < files.length; i++) {
-                    const printCountInput = document.getElementById(`printCount_${i}`);
-                    const orientationSelect = document.getElementById(`orientation_${i}`);
-                    printCountInput.addEventListener('input', updateSummary);
-                    orientationSelect.addEventListener('change', updateSummary);
-                }
+                // 添加全域列印頁數與排版變更監聽器
+                document.getElementById('globalPrintCount').addEventListener('input', updateSummary);
+                document.getElementById('globalOrientation').addEventListener('change', updateSummary);
 
             } catch (error) {
                 console.error('分析檔案時出錯:', error);
@@ -739,32 +726,15 @@
             
             let totalA5Pages = 0;
             let validFiles = 0;
-            let landscapePages = 0;
-            let portraitPages = 0;
-            
             fileAnalysisResults.forEach(result => {
                 if (!result.error) {
                     validFiles++;
-                    const printCountInput = document.getElementById(`printCount_${result.fileIndex}`);
-                    const orientationSelect = document.getElementById(`orientation_${result.fileIndex}`);
-                    const printCount = parseInt(printCountInput.value) || 0;
-                    const orientation = orientationSelect.value;
-                    
-                    totalA5Pages += printCount;
-                    
-                    if (orientation === 'landscape') {
-                        landscapePages += printCount;
-                    } else {
-                        portraitPages += printCount;
-                    }
+                    totalA5Pages += result.pageCount;
                 }
             });
-            
-            // 計算實際需要的A4張數：每兩個相同方向的A5頁面合併成一張A4
-            const landscapeA4Pages = Math.ceil(landscapePages / 2);
-            const portraitA4Pages = Math.ceil(portraitPages / 2);
-            const totalA4Pages = landscapeA4Pages + portraitA4Pages;
-            
+            // 依全域列印頁數計算A4張數
+            const globalPrintCount = parseInt(document.getElementById('globalPrintCount').value) || 0;
+            const totalA4Pages = Math.ceil(globalPrintCount / 2);
             totalFilesSpan.textContent = validFiles;
             totalA5PagesSpan.textContent = totalA5Pages;
             totalA4PagesSpan.textContent = totalA4Pages;
@@ -1027,195 +997,106 @@
         // 處理所有檔案並生成 PDF
         async function processFiles() {
             const validResults = fileAnalysisResults.filter(result => !result.error);
-            
             if (validResults.length === 0) {
                 statusDiv.textContent = '沒有可處理的檔案！';
                 statusDiv.className = 'status-error';
                 return;
             }
-
-            // 檢查是否有設定要列印的頁數
-            let totalPagesToProcess = 0;
-            for (let result of validResults) {
-                const printCountInput = document.getElementById(`printCount_${result.fileIndex}`);
-                const printCount = parseInt(printCountInput.value) || 0;
-                totalPagesToProcess += printCount;
-            }
-
-            if (totalPagesToProcess === 0) {
-                statusDiv.textContent = '請至少設定一個檔案的列印頁數！';
+            // 只用全域設定
+            const globalPrintCount = parseInt(document.getElementById('globalPrintCount').value) || 0;
+            const globalOrientation = document.getElementById('globalOrientation').value;
+            if (globalPrintCount === 0) {
+                statusDiv.textContent = '請設定列印頁數！';
                 statusDiv.className = 'status-error';
                 return;
             }
-
             statusDiv.textContent = '開始處理...';
             statusDiv.className = 'status-processing';
             processButton.disabled = true;
             tempCanvasContainer.style.display = 'block';
             progressContainer.style.display = 'block';
             progressBar.style.width = '0%';
-
             try {
                 // 收集所有要處理的頁面
                 let allPageImages = [];
                 let totalProcessedPages = 0;
-
-                // 處理每個檔案，收集所有頁面
+                // 合併所有檔案頁面
                 for (let result of validResults) {
-                    const printCountInput = document.getElementById(`printCount_${result.fileIndex}`);
-                    const orientationSelect = document.getElementById(`orientation_${result.fileIndex}`);
-                    const printCount = parseInt(printCountInput.value) || 0;
-                    const orientation = orientationSelect.value;
-                    
-                    if (printCount === 0) continue;
-
-                    statusDiv.textContent = `正在處理檔案: ${result.fileName}`;
-
                     let pageImages = [];
                     const fileExtension = result.fileName.split('.').pop().toLowerCase();
-                    
                     try {
                         if (fileExtension === 'pdf') {
-                            pageImages = await collectPDFPages(result.file, printCount);
+                            pageImages = await collectPDFPages(result.file, result.pageCount);
                         } else if (fileExtension === 'doc' || fileExtension === 'docx') {
-                            if (printCount > 0) {
-                                const imageData = await convertWordToCanvas(result.file);
-                                pageImages = [imageData];
-                                
-                                // 在預覽區顯示轉換結果
-                                const img = new Image();
-                                img.onload = function() {
-                                    tempCanvas.width = img.width;
-                                    tempCanvas.height = img.height;
-                                    tempCtx.drawImage(img, 0, 0);
-                                };
-                                img.src = imageData;
-                            }
+                            const imageData = await convertWordToCanvas(result.file);
+                            pageImages = [imageData];
                         }
-
-                        // 將每個頁面加入到總列表中，附帶方向資訊
                         for (let imageDataUrl of pageImages) {
                             allPageImages.push({
                                 imageData: imageDataUrl,
-                                orientation: orientation,
                                 fileName: result.fileName
                             });
                             totalProcessedPages++;
                         }
-
                     } catch (error) {
                         console.error(`處理檔案 ${result.fileName} 時出錯:`, error);
                         statusDiv.innerHTML = `處理檔案 ${result.fileName} 時出錯: ${error.message}`;
                         statusDiv.className = 'status-error';
-                        
-                        // 顯示錯誤詳情
                         const errorDiv = document.createElement('div');
                         errorDiv.className = 'error-details';
                         errorDiv.textContent = `錯誤詳情: ${error.stack || error.message}`;
                         statusDiv.appendChild(errorDiv);
                     }
                 }
-
-                if (allPageImages.length === 0) {
-                    statusDiv.textContent = '沒有成功處理任何頁面！';
-                    statusDiv.className = 'status-error';
-                    processButton.disabled = false;
-                    return;
-                }
-
-                // 按方向分組頁面
-                const landscapePages = allPageImages.filter(page => page.orientation === 'landscape');
-                const portraitPages = allPageImages.filter(page => page.orientation === 'portrait');
-
-                statusDiv.textContent = '正在生成 PDF...';
-
+                // 依全域列印頁數裁切
+                allPageImages = allPageImages.slice(0, globalPrintCount);
+                // 依全域排版
                 const { jsPDF } = window.jspdf;
                 let totalA4Pages = 0;
                 let isFirstPage = true;
-
-                // 處理橫式頁面 (每兩個A5頁面合併成一張A4)
-                if (landscapePages.length > 0) {
-                    if (isFirstPage) {
-                        generatedPDF = new jsPDF({
-                            orientation: 'l',
-                            unit: 'mm',
-                            format: 'a4'
-                        });
-                        isFirstPage = false;
-                    }
-
-                    for (let i = 0; i < landscapePages.length; i += 2) {
-                        if (i > 0) {
-                            generatedPDF.addPage('a4', 'l');
-                        }
-
-                        const A4_LANDSCAPE_WIDTH_MM = 297;
-                        const A4_LANDSCAPE_HEIGHT_MM = 210;
-                        const TARGET_A5_HEIGHT_MM = A4_LANDSCAPE_HEIGHT_MM;
-                        const ORIGINAL_A5_ASPECT_RATIO = 148 / 210;
-                        const TARGET_A5_WIDTH_MM = TARGET_A5_HEIGHT_MM * ORIGINAL_A5_ASPECT_RATIO;
-                        const marginX = (A4_LANDSCAPE_WIDTH_MM - TARGET_A5_WIDTH_MM * 2) / 2;
-
-                        // 左邊放第一個頁面
-                        generatedPDF.addImage(landscapePages[i].imageData, 'JPEG', marginX, 0, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
-                        
-                        // 右邊放第二個頁面（如果存在）
-                        if (i + 1 < landscapePages.length) {
-                            generatedPDF.addImage(landscapePages[i + 1].imageData, 'JPEG', marginX + TARGET_A5_WIDTH_MM, 0, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+                if (allPageImages.length > 0) {
+                    generatedPDF = new jsPDF({
+                        orientation: globalOrientation === 'landscape' ? 'l' : 'p',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+                    for (let i = 0; i < allPageImages.length; i += 2) {
+                        if (i > 0) generatedPDF.addPage('a4', globalOrientation === 'landscape' ? 'l' : 'p');
+                        if (globalOrientation === 'landscape') {
+                            const A4_LANDSCAPE_WIDTH_MM = 297;
+                            const A4_LANDSCAPE_HEIGHT_MM = 210;
+                            const TARGET_A5_HEIGHT_MM = A4_LANDSCAPE_HEIGHT_MM;
+                            const ORIGINAL_A5_ASPECT_RATIO = 148 / 210;
+                            const TARGET_A5_WIDTH_MM = TARGET_A5_HEIGHT_MM * ORIGINAL_A5_ASPECT_RATIO;
+                            const marginX = (A4_LANDSCAPE_WIDTH_MM - TARGET_A5_WIDTH_MM * 2) / 2;
+                            generatedPDF.addImage(allPageImages[i].imageData, 'JPEG', marginX, 0, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+                            if (i + 1 < allPageImages.length) {
+                                generatedPDF.addImage(allPageImages[i + 1].imageData, 'JPEG', marginX + TARGET_A5_WIDTH_MM, 0, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+                            } else {
+                                generatedPDF.addImage(allPageImages[i].imageData, 'JPEG', marginX + TARGET_A5_WIDTH_MM, 0, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+                            }
                         } else {
-                            // 如果只有一個頁面，右邊放相同的頁面
-                            generatedPDF.addImage(landscapePages[i].imageData, 'JPEG', marginX + TARGET_A5_WIDTH_MM, 0, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+                            const A4_PORTRAIT_WIDTH_MM = 210;
+                            const A4_PORTRAIT_HEIGHT_MM = 297;
+                            const TARGET_A5_WIDTH_MM = A4_PORTRAIT_WIDTH_MM;
+                            const ORIGINAL_A5_ASPECT_RATIO = 210 / 148;
+                            const TARGET_A5_HEIGHT_MM = TARGET_A5_WIDTH_MM / ORIGINAL_A5_ASPECT_RATIO;
+                            const marginY = (A4_PORTRAIT_HEIGHT_MM - TARGET_A5_HEIGHT_MM * 2) / 2;
+                            generatedPDF.addImage(allPageImages[i].imageData, 'JPEG', 0, marginY, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+                            if (i + 1 < allPageImages.length) {
+                                generatedPDF.addImage(allPageImages[i + 1].imageData, 'JPEG', 0, marginY + TARGET_A5_HEIGHT_MM, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+                            } else {
+                                generatedPDF.addImage(allPageImages[i].imageData, 'JPEG', 0, marginY + TARGET_A5_HEIGHT_MM, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
+                            }
                         }
-
                         totalA4Pages++;
                     }
                 }
-
-                // 處理直式頁面 (每兩個A5頁面合併成一張A4)
-                if (portraitPages.length > 0) {
-                    if (isFirstPage) {
-                        generatedPDF = new jsPDF({
-                            orientation: 'p',
-                            unit: 'mm',
-                            format: 'a4'
-                        });
-                        isFirstPage = false;
-                    }
-
-                    for (let i = 0; i < portraitPages.length; i += 2) {
-                        if (i > 0 || landscapePages.length > 0) {
-                            generatedPDF.addPage('a4', 'p');
-                        }
-
-                        const A4_PORTRAIT_WIDTH_MM = 210;
-                        const A4_PORTRAIT_HEIGHT_MM = 297;
-                        const TARGET_A5_WIDTH_MM = A4_PORTRAIT_WIDTH_MM;
-                        const ORIGINAL_A5_ASPECT_RATIO = 210 / 148;
-                        const TARGET_A5_HEIGHT_MM = TARGET_A5_WIDTH_MM / ORIGINAL_A5_ASPECT_RATIO;
-                        const marginY = (A4_PORTRAIT_HEIGHT_MM - TARGET_A5_HEIGHT_MM * 2) / 2;
-
-                        // 上面放第一個頁面
-                        generatedPDF.addImage(portraitPages[i].imageData, 'JPEG', 0, marginY, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
-                        
-                        // 下面放第二個頁面（如果存在）
-                        if (i + 1 < portraitPages.length) {
-                            generatedPDF.addImage(portraitPages[i + 1].imageData, 'JPEG', 0, marginY + TARGET_A5_HEIGHT_MM, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
-                        } else {
-                            // 如果只有一個頁面，下面放相同的頁面
-                            generatedPDF.addImage(portraitPages[i].imageData, 'JPEG', 0, marginY + TARGET_A5_HEIGHT_MM, TARGET_A5_WIDTH_MM, TARGET_A5_HEIGHT_MM);
-                        }
-
-                        totalA4Pages++;
-                    }
-                }
-
                 if (totalProcessedPages > 0) {
                     statusDiv.textContent = 'PDF 生成完成！';
                     statusDiv.className = 'status-success';
                     progressBar.style.width = '100%';
-                    
-                    // 顯示結果資訊
-                    document.getElementById('processedA5Pages').textContent = totalProcessedPages;
+                    document.getElementById('processedA5Pages').textContent = allPageImages.length;
                     document.getElementById('generatedA4Pages').textContent = totalA4Pages;
                     resultActions.style.display = 'block';
                     printSettings.style.display = 'none';
@@ -1223,15 +1104,12 @@
                     statusDiv.textContent = '沒有成功處理任何頁面！';
                     statusDiv.className = 'status-error';
                 }
-
             } catch (error) {
                 console.error('處理過程中出錯:', error);
                 statusDiv.textContent = `處理過程中出錯: ${error.message}`;
                 statusDiv.className = 'status-error';
             }
-
             processButton.disabled = false;
-            
             setTimeout(() => {
                 tempCanvasContainer.style.display = 'none';
             }, 3000);
@@ -1261,6 +1139,45 @@
             fileAnalysisResults = [];
             generatedPDF = null;
         });
+    </script>
+    <!-- i18n 多國語言物件 -->
+    <script>
+        const i18n = {
+            'zh-TW': {
+                printCount: '列印頁數',
+                orientation: '排版',
+                analyze: '分析檔案',
+                process: '開始處理',
+                download: '下載 PDF',
+                reset: '重新選擇檔案',
+                totalFiles: '總檔案數',
+                totalA5Pages: '總A5頁數',
+                totalA4Pages: '預計A4張數',
+                statusWaiting: '正在等待選擇檔案...',
+                statusAnalyzing: '正在分析檔案...',
+                statusSuccess: '分析完成！請設定列印參數。',
+                statusError: '分析檔案時出錯:',
+                noFiles: '沒有可處理的檔案！',
+                setPrintCount: '請設定列印頁數！',
+                pdfDone: 'PDF 生成完成！',
+                noPages: '沒有成功處理任何頁面！',
+            }
+            // 可擴充其他語言
+        };
+        // 設定語言
+        function setLanguage(lang) {
+            document.getElementById('globalPrintCountLabel').textContent = i18n[lang].printCount + ':';
+            document.getElementById('globalOrientationLabel').textContent = i18n[lang].orientation + ':';
+            document.getElementById('analyzeButton').textContent = i18n[lang].analyze;
+            document.getElementById('processButton').textContent = i18n[lang].process;
+            document.getElementById('downloadButton').textContent = i18n[lang].download;
+            document.getElementById('resetButton').textContent = i18n[lang].reset;
+            document.getElementById('totalFiles').textContent = i18n[lang].totalFiles;
+            document.getElementById('totalA5Pages').textContent = i18n[lang].totalA5Pages;
+            document.getElementById('totalA4Pages').textContent = i18n[lang].totalA4Pages;
+            statusDiv.textContent = i18n[lang].statusWaiting;
+        }
+        setLanguage('zh-TW');
     </script>
 </body>
 </html>
