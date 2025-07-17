@@ -1048,8 +1048,22 @@
                         statusDiv.appendChild(errorDiv);
                     }
                 }
-                // 依全域列印頁數裁切
-                allPageImages = allPageImages.slice(0, globalPrintCount);
+                // 生成指定頁數的A4頁面，每頁重複同一個A5內容
+                let targetA4Pages = globalPrintCount;
+                let repeatedPageImages = [];
+                
+                if (allPageImages.length > 0) {
+                    // 如果有多個頁面，循環使用
+                    for (let i = 0; i < targetA4Pages * 2; i++) {
+                        const sourceIndex = i % allPageImages.length;
+                        repeatedPageImages.push(allPageImages[sourceIndex]);
+                    }
+                } else {
+                    // 沒有頁面的情況保持原樣
+                    repeatedPageImages = allPageImages;
+                }
+                
+                allPageImages = repeatedPageImages;
                 // 依全域排版
                 const { jsPDF } = window.jspdf;
                 let totalA4Pages = 0;
